@@ -1,4 +1,7 @@
-from bk import BK
+from ..datasets.bk import BK
 
+data = BK(cfg='../experiments/BK-dataset/bumper_keypoints.yaml')
 
-print("oi")
+a = data.__getitem__(0)
+
+a[0]

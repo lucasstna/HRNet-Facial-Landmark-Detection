@@ -45,6 +45,8 @@ class BK(data.Dataset):
 
         image_path = os.path.join(self.data_root,
                                   self.landmarks_frame['annotations'][idx]['image_id'] + '.jpeg')
+
+        scale = 1 / 1.25                                  
         
         # retrieving bbox of the object
         bbox_x = self.landmarks_frame['annotations'][idx]['bbox'][0]
@@ -54,8 +56,51 @@ class BK(data.Dataset):
         
         # load full image and crop it to separate the example
         img = Image.open(image_path).convert('RGB').crop(bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h)
-                
 
+        # bbox central coordinates to use in data augmentation
+        center_w = (bbox_x + bbox_w) / 2
+        center_h = (bbox_x + bbox_h) / 2
+        center = torch.Tensor([center_w, center_h])        
+                
+        pts = np.array(self.landmarks_frame['annotations'][idx]['keypoints'], dtype=np.float32)
+        pts = pts.reshape((-1, 3))[:, :2]
+
+        scale *= 1.25
+        nparts = pts.shape[0]
+        img = np.array(Image.open(image_path).convert('RGB'), dtype=np.float32)
+
+        r = 0
+        if self.is_train:
+            scale = scale * (random.uniform(1 - self.scale_factor,
+                                            1 + self.scale_factor))
+            r = random.uniform(-self.rot_factor, self.rot_factor) \
+                if random.random() <= 0.6 else 0
+            if random.random() <= 0.5 and self.flip:
+                img = np.fliplr(img)
+                pts = fliplr_joints(pts, width=img.shape[1], dataset='WFLW')
+                center[0] = img.shape[1] - center[0]
+
+        img = crop(img, center, scale, self.input_size, rot=r)
+
+        target = np.zeros((nparts, self.output_size[0], self.output_size[1]))
+        tpts = pts.copy()
+
+        for i in range(nparts):
+            if tpts[i, 1] > 0:
+                tpts[i, 0:2] = transform_pixel(tpts[i, 0:2]+1, center,
+                                               scale, self.output_size, rot=r)
+                target[i] = generate_target(target[i], tpts[i]-1, self.sigma,
+                                            label_type=self.label_type)
+        img = img.astype(np.float32)
+        img = img.transpose([2, 0, 1])
+        target = torch.Tensor(target)
+        tpts = torch.Tensor(tpts)
+        center = torch.Tensor(center)
+
+        meta = {'index': idx, 'center': center, 'scale': scale,
+                'pts': torch.Tensor(pts), 'tpts': tpts}
+
+        return img, target, meta
         
 
 if __name__ == '__main__':
