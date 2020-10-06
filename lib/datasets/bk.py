@@ -58,12 +58,18 @@ class BK(data.Dataset):
         img = Image.open(image_path).convert('RGB').crop(bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h)
 
         # bbox central coordinates to use in data augmentation
-        center_w = (bbox_x + bbox_w) / 2
-        center_h = (bbox_x + bbox_h) / 2
-        center = torch.Tensor([center_w, center_h])        
+        center_w = (bbox_w) / 2
+        center_h = (bbox_h) / 2
+        center = torch.Tensor([center_w, center_h])  
+
+        # used to make keypoint values fit bbox coordinates
+        resize_mat = np.matrix([[bbox_x, bbox_y],
+                                [bbox_x, bbox_y],
+                                [bbox_x, bbox_y],
+                                [bbox_x, bbox_y]])     
                 
         pts = np.array(self.landmarks_frame['annotations'][idx]['keypoints'], dtype=np.float32)
-        pts = pts.reshape((-1, 3))[:, :2]
+        pts = pts.reshape((-1, 3))[:, :2] - resize_mat
 
         scale *= 1.25
         nparts = pts.shape[0]
