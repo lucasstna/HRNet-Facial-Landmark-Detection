@@ -6,9 +6,9 @@
 import os
 import random
 
+import json
 import torch
 import torch.utils.data as data
-import json
 from PIL import Image
 import numpy as np
 
@@ -69,6 +69,8 @@ class BK(data.Dataset):
         nparts = pts.shape[0]
         img = np.array(Image.open(image_path).convert('RGB'), dtype=np.float32)
 
+        img.imshow()
+
         r = 0
         if self.is_train:
             scale = scale * (random.uniform(1 - self.scale_factor,
@@ -104,6 +106,8 @@ class BK(data.Dataset):
         
 
 if __name__ == '__main__':
-    pass
+    a = BK('/home/lucas/Documents/reps/HRNet-Facial-Landmark-Detection/experiments/BK-dataset/bumper_keypoints.yaml')
+
+    a.__getitem__(0)
 
                 
