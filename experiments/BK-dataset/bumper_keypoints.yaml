@@ -4,9 +4,9 @@ PRINT_FREQ: 50
 
 DATASET:
   DATASET: BK
-  ROOT: '/home/lucas/Documents/reps/spd-est/frames-0027'
-  TRAINSET: '/home/lucas/Documents/reps/spd-est/anns-0027/converted.json'
-  TESTSET: './data/BK-dataset/face_landmarks_300w_valid.csv'
+  ROOT: '/hd4t/home/lucass/tcc/spd-est/frames-0027/'
+  TRAINSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted.json'
+  TESTSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted.json'
   FLIP: true
   SCALE_FACTOR: 0.25
   ROT_FACTOR: 30

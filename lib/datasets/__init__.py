@@ -8,8 +8,9 @@ from .aflw import AFLW
 from .cofw import COFW
 from .face300w import Face300W
 from .wflw import WFLW
+from .bk import BK
 
-__all__ = ['AFLW', 'COFW', 'Face300W', 'WFLW', 'get_dataset']
+__all__ = ['AFLW', 'COFW', 'Face300W', 'WFLW', 'BK', 'get_dataset']
 
 
 def get_dataset(config):
@@ -22,6 +23,8 @@ def get_dataset(config):
         return Face300W
     elif config.DATASET.DATASET == 'WFLW':
         return WFLW
+    elif config.DATASET.DATASET == 'BK':
+        return BK
     else:
         raise NotImplemented()
 

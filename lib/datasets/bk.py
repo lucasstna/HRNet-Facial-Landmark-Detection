@@ -1,7 +1,7 @@
-# ---------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 # Licensed under the MIT License.
-# Created by Lucas Santana (lucasstn10@gmail.com), based on paper original implementations
-# ---------------------------------------------------------------------------------------------
+# Created by Lucas Santana Escobar (lucasstn10@gmail.com), based on paper original implementations
+# -------------------------------------------------------------------------------------------------
 
 import os
 import random
@@ -9,10 +9,14 @@ import random
 import json
 import torch
 import torch.utils.data as data
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
+import sys
 
-from ..utils.transforms import fliplr_joints, crop, generate_target, transform_pixel
+sys.path.append("../..")
+
+from lib.utils.transforms import fliplr_joints, crop, generate_target, transform_pixel
+
 
 class BK(data.Dataset):
 
@@ -46,6 +50,8 @@ class BK(data.Dataset):
         image_path = os.path.join(self.data_root,
                                   self.landmarks_frame['annotations'][idx]['image_id'] + '.jpeg')
 
+        print(image_path)                                  
+
         scale = 1 / 1.25                                  
         
         # retrieving bbox of the object
@@ -55,7 +61,7 @@ class BK(data.Dataset):
         bbox_h = self.landmarks_frame['annotations'][idx]['bbox'][3]
         
         # load full image and crop it to separate the example
-        img = Image.open(image_path).convert('RGB').crop(bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h)
+        img = Image.open(image_path).convert('RGB').crop((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
 
         # bbox central coordinates to use in data augmentation
         center_w = (bbox_w) / 2
@@ -71,11 +77,21 @@ class BK(data.Dataset):
         pts = np.array(self.landmarks_frame['annotations'][idx]['keypoints'], dtype=np.float32)
         pts = pts.reshape((-1, 3))[:, :2] - resize_mat
 
+        print(pts.shape)
+
         scale *= 1.25
         nparts = pts.shape[0]
-        img = np.array(Image.open(image_path).convert('RGB'), dtype=np.float32)
 
-        img.imshow()
+#########  JUST FOR TEST PURPOSES ###############################
+        draw = ImageDraw.Draw(img)
+
+        for i in range(pts.shape[0]):
+            draw.point((pts[i,0], pts[i,1]), fill='yellow')
+
+        img.save('teste.jpg')
+#################################################################
+
+        img = np.array(Image.open(image_path).convert('RGB'), dtype=np.float32)
 
         r = 0
         if self.is_train:
@@ -85,7 +101,7 @@ class BK(data.Dataset):
                 if random.random() <= 0.6 else 0
             if random.random() <= 0.5 and self.flip:
                 img = np.fliplr(img)
-                pts = fliplr_joints(pts, width=img.shape[1], dataset='WFLW')
+                pts = fliplr_joints(pts, width=img.shape[1], dataset='BK')
                 center[0] = img.shape[1] - center[0]
 
         img = crop(img, center, scale, self.input_size, rot=r)
