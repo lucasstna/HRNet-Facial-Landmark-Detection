@@ -76,8 +76,11 @@ class BK(data.Dataset):
                 
         pts = np.array(self.landmarks_frame['annotations'][idx]['keypoints'], dtype=np.float32)
         pts = pts.reshape((-1, 3))[:, :2] - resize_mat
-
-        print(pts.shape)
+        
+        # sorting keypoints to flip the image properly
+        aux = pts.tolist()
+        aux.sort()
+        pts = np.array(aux)
 
         scale *= 1.25
         nparts = pts.shape[0]
@@ -87,7 +90,7 @@ class BK(data.Dataset):
 
         for i in range(pts.shape[0]):
             draw.point((pts[i,0], pts[i,1]), fill='yellow')
-
+            
         img.save('teste.jpg')
 #################################################################
 
