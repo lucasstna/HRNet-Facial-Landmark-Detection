@@ -12,7 +12,7 @@ import torch.utils.data as data
 from PIL import Image, ImageDraw
 import numpy as np
 import sys
-
+from matplotlib import cm
 sys.path.append("../..")
 
 from lib.utils.transforms import fliplr_joints, crop, generate_target, transform_pixel
@@ -48,9 +48,7 @@ class BK(data.Dataset):
     def __getitem__(self, idx):
 
         image_path = os.path.join(self.data_root,
-                                  self.landmarks_frame['annotations'][idx]['image_id'] + '.jpeg')
-
-        print(image_path)                                  
+                                  self.landmarks_frame['annotations'][idx]['image_id'] + '.jpeg')                              
 
         scale = 1 / 1.25                                  
         
@@ -63,9 +61,17 @@ class BK(data.Dataset):
         # load full image and crop it to separate the example
         img = Image.open(image_path).convert('RGB').crop((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
 
+        # used in coordinates transformation
+        original_size = np.array([img.size])
+        new_size = np.array([[256, 256]])
+
+        # resize image to input size
+        img = img.resize(new_size[0], resample=Image.ANTIALIAS)
+
         # bbox central coordinates to use in data augmentation
-        center_w = (bbox_w) / 2
-        center_h = (bbox_h) / 2
+        center_w = new_size[0, 0] / 2
+        center_h = new_size[0, 1] / 2
+
         center = torch.Tensor([center_w, center_h])  
 
         # used to make keypoint values fit bbox coordinates
@@ -76,7 +82,12 @@ class BK(data.Dataset):
                 
         pts = np.array(self.landmarks_frame['annotations'][idx]['keypoints'], dtype=np.float32)
         pts = pts.reshape((-1, 3))[:, :2] - resize_mat
-        
+
+        # get points in relative coordinates 
+        relative_coord = pts / original_size
+
+        pts = np.floor(np.multiply(new_size, relative_coord))
+
         # sorting keypoints to flip the image properly
         aux = pts.tolist()
         aux.sort()
@@ -86,15 +97,15 @@ class BK(data.Dataset):
         nparts = pts.shape[0]
 
 #########  JUST FOR TEST PURPOSES ###############################
-        draw = ImageDraw.Draw(img)
+        # draw = ImageDraw.Draw(img)
 
-        for i in range(pts.shape[0]):
-            draw.point((pts[i,0], pts[i,1]), fill='yellow')
+        # for i in range(pts.shape[0]):
+        #     draw.point((pts[i,0], pts[i,1]), fill='yellow')
             
-        img.save('teste.jpg')
+        # img.save('teste.jpg')
 #################################################################
 
-        img = np.array(Image.open(image_path).convert('RGB'), dtype=np.float32)
+        img = np.array(img, dtype=np.float32)
 
         r = 0
         if self.is_train:
