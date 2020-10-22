@@ -59,6 +59,10 @@ def main():
     }
 
     gpus = list(config.GPUS)
+
+    # set default device according to config file
+    torch.cuda.set_device('cuda:' + str(gpus[0]))
+
     model = nn.DataParallel(model, device_ids=gpus).cuda()
 
     # loss
