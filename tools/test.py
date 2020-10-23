@@ -54,6 +54,10 @@ def main():
     model = models.get_face_alignment_net(config)
 
     gpus = list(config.GPUS)
+
+    # set default device according to config file
+    torch.cuda.set_device('cuda:' + str(gpus[0]))    
+
     model = nn.DataParallel(model, device_ids=gpus).cuda()
 
     # load model
