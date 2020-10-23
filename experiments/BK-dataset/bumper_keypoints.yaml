@@ -5,8 +5,8 @@ PRINT_FREQ: 50
 DATASET:
   DATASET: BK
   ROOT: '/hd4t/home/lucass/tcc/spd-est/frames-0027/'
-  TRAINSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted.json'
-  TESTSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted.json'
+  TRAINSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted-train.json'
+  TESTSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted-test.json'
   FLIP: true
   SCALE_FACTOR: 0.25
   ROT_FACTOR: 30
@@ -64,7 +64,7 @@ MODEL:
         - 144
       FUSE_METHOD: SUM
 TRAIN:
-  BATCH_SIZE_PER_GPU: 1
+  BATCH_SIZE_PER_GPU: 16
   SHUFFLE: true
   BEGIN_EPOCH: 0
   END_EPOCH: 60
