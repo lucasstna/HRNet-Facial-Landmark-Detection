@@ -54,16 +54,16 @@ def main():
     )
 
 
-    for i, (batch, target, meta) in enumerate(test_loader):
+    for idx, (batch, target, meta) in enumerate(test_loader):
         for img in batch:
             img = img.permute(1, 2, 0).numpy()
 
             img = cv2.cvtColor(cv2.UMat(img), cv2.COLOR_BGR2RGB)
 
-            for pt in predictions[i]:
+            for pt in predictions[idx]:
                 image = cv2.circle(img, (pt[0], pt[1]), radius=5, color=(255, 0, 0), thickness=-1)
 
-            if cv2.imwrite('./img_results_bk/' + str(i) + '.jpeg', image):
+            if cv2.imwrite('./img_results_bk/' + str(idx) + '.jpeg', image):
                 print('nice')
             else:
                 print('not nice')
