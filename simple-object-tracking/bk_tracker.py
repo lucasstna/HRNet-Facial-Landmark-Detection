@@ -17,7 +17,7 @@ import imutils
 import time
 import cv2
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../HRNet-Facial-Landmark-Detection'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 import lib.models as models
 from lib.config import config, update_config
 from lib.core.evaluation import get_preds
@@ -73,26 +73,31 @@ def get_car_dets(dir_path, img, model, threshold=0.8):
 
     return {'bbox' : np.array(bbox, dtype=int), 'confidence' : confidence}
 
-def get_keypoints(img, model):
+def get_keypoints(dir_path, img, bbox, model):
 
-    print(img.shape)
+    image = Image.open(dir_path + "/" + img).convert('RGB')
 
-    img = cv2.resize(img, (256, 256))
+    original_size = np.array([image.size, image.size, image.size, image.size])
+    print(original_size)
 
-    center_w = 128
-    center_h = 128
+    image = image.crop(bbox)
 
-    img = img.astype(np.float32)
-    img = img.transpose([2, 0, 1])
+    image = image.resize((256, 256))
+
+    image = np.array(image, dtype=np.float32)
+    image = image.transpose([2, 0, 1])
 
     model.eval()
-    output = model(torch.Tensor([img]))
+    output = model(torch.Tensor([image]))
     score_map = output.data.cpu()
-    preds = get_preds(score_map)
+    preds = get_preds(score_map)[0]
 
-    print('PONTOS', preds)
+    # modifying to global coordinates
+    preds = np.array(preds) / 256
 
-    return preds
+    pts = np.floor(np.multiply(original_size, preds))
+
+    return pts
 
 def main():
 
@@ -137,6 +142,7 @@ def main():
 
         # list to store all bboxes with acceptable confidence
         rects = []
+        keypoints = []
 
         for i in range(len(dets['bbox'])):
             
@@ -150,7 +156,7 @@ def main():
                 print('BBOX:',(startX - endX, startY - endY))
 
                 # get keypoint
-                keypoints = get_keypoints(frame[startX:endX, startY:endY], kp_model)
+                keypoints.append(get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model))
 
         objects = tracker.update(rects)
 
