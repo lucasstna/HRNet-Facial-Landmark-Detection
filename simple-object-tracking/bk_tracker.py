@@ -15,6 +15,7 @@ import numpy as np
 import argparse
 import imutils
 import time
+import tqdm
 import cv2
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
@@ -77,9 +78,6 @@ def get_keypoints(dir_path, img, bbox, model):
 
     image = Image.open(dir_path + "/" + img).convert('RGB')
 
-    original_size = np.array([image.size, image.size, image.size, image.size])
-    print(original_size)
-
     image = image.crop(bbox)
 
     image = image.resize((256, 256))
@@ -92,10 +90,12 @@ def get_keypoints(dir_path, img, bbox, model):
     score_map = output.data.cpu()
     preds = get_preds(score_map)[0]
 
-    # modifying to global coordinates
-    preds = np.array(preds) / 256
+    # print(preds)
 
-    pts = np.floor(np.multiply(original_size, preds))
+    # modifying to global coordinates
+    pts = np.array(preds) + [bbox[0], bbox[1]]
+
+    # print(pts)
 
     return pts
 
@@ -134,7 +134,7 @@ def main():
     # load model used to do detect cars
     det_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained = True)
 
-    for idx in range(len(os.listdir(args.img_dir))):
+    for idx in tqdm.tqdm(range(len(os.listdir(args.img_dir)))):
         
         dets = get_car_dets(args.img_dir, f'frame{idx}.jpeg', det_model)
 
@@ -153,10 +153,11 @@ def main():
                 (startX, startY, endX, endY) = dets['bbox'][i]
                 cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
 
-                print('BBOX:',(startX - endX, startY - endY))
-
                 # get keypoint
-                keypoints.append(get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model))
+                keypoints = get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model)
+
+                for point in keypoints:
+                    cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
 
         objects = tracker.update(rects)
 
@@ -169,7 +170,9 @@ def main():
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
         
-        cv2.imwrite(f'./result1/{idx}.jpeg', frame)
+        
+        if not cv2.imwrite('./simple-object-tracking/result1/' + str(idx) + '.jpeg', frame):
+            print('Não foi')
 
     cv2.destroyAllWindows()
     
