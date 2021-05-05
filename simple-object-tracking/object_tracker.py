@@ -76,9 +76,9 @@ def get_car_dets(img, model, threshold=0.8):
 
     return {'bbox' : np.array(bbox, dtype=int), 'confidence' : confidence}
 
-def get_keypoints(dir_path, img, bbox, model):
-
-    image = Image.open(dir_path + "/" + img).convert('RGB')
+def get_keypoints(img, bbox, model):
+    # read the image and apply transformations
+    image = Image.fromarray(img).convert('RGB')
 
     image = image.crop(bbox)
 
@@ -182,10 +182,10 @@ def main():
                     cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
 
                     # get keypoint MODIFICAÇÃO NECESSÁRIA
-                    # keypoints = get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model)
+                    keypoints = get_keypoints(frame, (startX, startY, endX, endY), kp_model)
 
-                    # for point in keypoints:
-                        # cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
+                    for point in keypoints:
+                        cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
 
             # update our centroid tracker using the computed set of bounding
             # box rectangles
