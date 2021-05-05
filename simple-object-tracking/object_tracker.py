@@ -138,62 +138,74 @@ def main():
 
     # initialize the video stream
     print("[INFO] starting video stream...")
-    vs = cv2.FileVideoStream(args.video).start()
+    vs = cv2.VideoCapture(args.video)
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    video_writer = cv2.VideoWriter('output.avi',fourcc, int(vs.stream.get(cv2.CAP_PROP_FPS)), (4056,3040))
+    video_writer = cv2.VideoWriter('output.avi',fourcc, vs.get(cv2.CV_CAP_PROP_FPS), (1920, 1080))
 
     # loop over the frames from the video stream
     while vs.more():
         # read the next frame from the video stream and resize it
-        frame = vs.read()
+        ret, frame = vs.read()
 
         if frame is None:
-            continue
+            print('frame is none')
 
-        # if the frame dimensions are None, grab them
-        if W is None or H is None:
-            (H, W) = frame.shape[:2]
+            if not ret:
+                break
+            else: 
+                continue
 
-        # MODIFICAÇÃO NECESSÁRIA
-        dets = get_car_dets(frame, det_model)
+        else:
 
-        rects = []
-        keypoints = []
+            print('frame is not none')
+            frame = cv2.resize(frame, (1920, 1080))
+                
+            # if the frame dimensions are None, grab them
+            if W is None or H is None:
+                (H, W) = frame.shape[:2]
 
-        for i in range(len(dets['bbox'])):
-            
-            if dets['confidence'][i] >= args.confidence:
-                rects.append(dets['bbox'][i])
+            # MODIFICAÇÃO NECESSÁRIA FEITA
+            dets = get_car_dets(frame, det_model)
 
-                # TO DO: IMPLEMENT BBOX DRAWING ON IMAGES USING PIL
-                (startX, startY, endX, endY) = dets['bbox'][i]
-                cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+            rects = []
+            keypoints = []
 
-                # get keypoint MODIFICAÇÃO NECESSÁRIA
-                keypoints = get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model)
+            for i in range(len(dets['bbox'])):
+                
+                if dets['confidence'][i] >= args.confidence:
+                    rects.append(dets['bbox'][i])
 
-                for point in keypoints:
-                    cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
+                    # TO DO: IMPLEMENT BBOX DRAWING ON IMAGES USING PIL
+                    (startX, startY, endX, endY) = dets['bbox'][i]
+                    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
 
-        # update our centroid tracker using the computed set of bounding
-        # box rectangles
-        objects = tracker.update(rects)
+                    # get keypoint MODIFICAÇÃO NECESSÁRIA
+                    # keypoints = get_keypoints(args.img_dir, f'frame{idx}.jpeg', (startX, startY, endX, endY), kp_model)
 
-        # loop over the tracked objects
-        for (objectID, centroid) in objects.items():
-        # draw both the ID of the object and the centroid of the
-        # object on the output frame
-            text = "ID {}".format(objectID)
-            cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-            cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+                    # for point in keypoints:
+                        # cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
 
-        # show the output frame
-        cv2.imshow("Frame", frame)
+            # update our centroid tracker using the computed set of bounding
+            # box rectangles
+            objects = tracker.update(rects)
 
-        video_writer.write(frame)
+            # loop over the tracked objects
+            for (objectID, centroid) in objects.items():
+            # draw both the ID of the object and the centroid of the
+            # object on the output frame
+                text = "ID {}".format(objectID)
+                cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+
+            video_writer.write(frame)
+    
+    print('[INFO] Video processing ended...')
+
+    vs.release()
+    video_writer.release()
 
 
 if __name__ == '__main__':
