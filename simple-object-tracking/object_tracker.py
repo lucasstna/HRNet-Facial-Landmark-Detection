@@ -142,14 +142,15 @@ def main():
 
     # Define the codec and create VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    video_writer = cv2.VideoWriter('output.avi',fourcc, vs.get(cv2.CV_CAP_PROP_FPS), (1920, 1080))
+    video_writer = cv2.VideoWriter('../output.avi',fourcc, vs.get(cv2.CAP_PROP_FPS), (1920, 1080))
 
     # loop over the frames from the video stream
-    while vs.more():
+    while vs.isOpened():
         # read the next frame from the video stream and resize it
         ret, frame = vs.read()
 
         if frame is None:
+            
             print('frame is none')
 
             if not ret:
@@ -166,7 +167,6 @@ def main():
             if W is None or H is None:
                 (H, W) = frame.shape[:2]
 
-            # MODIFICAÇÃO NECESSÁRIA FEITA
             dets = get_car_dets(frame, det_model)
 
             rects = []
