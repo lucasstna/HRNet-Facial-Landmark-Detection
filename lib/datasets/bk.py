@@ -20,13 +20,14 @@ from lib.utils.transforms import fliplr_joints, crop, generate_target, transform
 
 class BK(data.Dataset):
 
-    def __init__(self, cfg, is_train=True, transform=None):
+    def __init__(self, cfg, is_train=True, transform=None, idx = 0):
         # specify annotation file for dataset
         if is_train:
             self.ann = cfg.DATASET.TRAINSET
         else:
             self.ann = cfg.DATASET.TESTSET
 
+        self.idx = idx
         self.is_train = is_train
         self.transform = transform
         self.data_root = cfg.DATASET.ROOT
@@ -60,6 +61,15 @@ class BK(data.Dataset):
         
         # load full image and crop it to separate the example
         img = Image.open(image_path).convert('RGB').crop((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
+
+        # img = Image.open(image_path).convert('RGB')
+
+        # rect = ImageDraw.Draw(img)
+        # print("indo")
+        # rect.rectangle((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h), outline='red')
+        # img.save(f'{self.idx}-train-{self.landmarks_frame["annotations"][idx]["image_id"]}.jpg')
+        # print("img_path:", image_path, (bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
+        # print("foi")
 
         # used in coordinates transformation
         original_size = np.array([img.size])
@@ -97,12 +107,17 @@ class BK(data.Dataset):
         nparts = pts.shape[0]
 
 #########  JUST FOR TEST PURPOSES ###############################
-        # draw = ImageDraw.Draw(img)
+        draw = ImageDraw.Draw(img)
 
-        # for i in range(pts.shape[0]):
-        #     draw.point((pts[i,0], pts[i,1]), fill='yellow')
-            
-        # img.save('teste.jpg')
+        for i in range(pts.shape[0]):
+            draw.point((pts[i,0], pts[i,1]), fill='yellow')
+
+        if self.is_train:  
+            print('aaaaaaaaaaaaaaaaa')  
+            img.save(f'input_train/{self.idx}-train-{self.landmarks_frame["annotations"][idx]["image_id"]}.jpg')
+        else:
+            img.save(f'input_test/{self.idx}-train-{self.landmarks_frame["annotations"][idx]["image_id"]}.jpg')
+        self.idx += 1
 #################################################################
 
         img = np.array(img, dtype=np.float32)
@@ -142,8 +157,6 @@ class BK(data.Dataset):
         
 
 if __name__ == '__main__':
-    a = BK('/home/lucas/Documents/reps/HRNet-Facial-Landmark-Detection/experiments/BK-dataset/bumper_keypoints.yaml')
+    a = BK(cfg = '/home/lucas/Documents/reps/HRNet-Facial-Landmark-Detection/experiments/BK-dataset/bumper_keypoints.yaml')
 
-    a.__getitem__(0)
-
-                
+    a.__getitem__(5)

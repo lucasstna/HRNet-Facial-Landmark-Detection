@@ -1,6 +1,11 @@
+'''
+    THIS CODE SHOWS THE INPUT FED TO THE NETWORK AT TRAINING/TEST TIME
+'''
+
 from bk import BK
 import sys
 import argparse
+from PIL import Image, ImageDraw
 
 sys.path.append("../..")
 
@@ -21,9 +26,12 @@ def main():
 
     args = parse_args()
 
-    data = BK(config)
+    data = BK(config, is_train=True)
 
-    a = data.__getitem__(0)
+    
+    # for i in range(data.__len__()):
+    a = data.__getitem__(159)
+
 
 if __name__ == '__main__':
     main()

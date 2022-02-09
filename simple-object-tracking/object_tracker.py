@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument('--kp_model', help='keypoints model file',
                         required=True, type=str)                        
 
-    parser.add_argument("--confidence", type=float, default=0.5,
+    parser.add_argument("--confidence", type=float, default=0.8,
                           help="minimum probability to filter weak detections")
 
     parser.add_argument('--cfg', help='keypoint model configuration filename',
@@ -51,12 +51,15 @@ def parse_args():
         
     return args
 
-def get_car_dets(img, model, threshold=0.8):
+def get_car_dets(img, model, threshold=0.5):
     # read the image and apply transformations
     image = Image.fromarray(img).convert('L')
 
     transform = T.Compose([T.Grayscale(num_output_channels=3), T.ToTensor()])
     image = transform(image)
+
+    bbox = []
+    confidence = []
 
     # generate detections
     model.eval()
@@ -64,15 +67,18 @@ def get_car_dets(img, model, threshold=0.8):
 
     boxes = [[i[0], i[1], i[2], i[3]] for i in detections[0]['boxes'].detach().numpy()]
     prediction_score = detections[0]['scores'].detach().numpy().tolist()
-    prediction_t = [prediction_score.index(x) for x in prediction_score if x > threshold][-1]
-    boxes = boxes[:prediction_t + 1]
 
-    bbox = []
-    confidence = []
-    for i in range(len(boxes)): 
-        if detections[0]['labels'].numpy()[i] == 3:
-            bbox.append(boxes[i])
-            confidence.append(prediction_score[i])
+    if True not in (np.array(prediction_score) >= threshold):
+        print('não tem coisa')
+
+    else:
+        prediction_t = [prediction_score.index(x) for x in prediction_score if x >= threshold][-1]
+        boxes = boxes[:prediction_t + 1]
+
+        for i in range(len(boxes)): 
+            if detections[0]['labels'].numpy()[i] == 3:
+                bbox.append(boxes[i])
+                confidence.append(prediction_score[i])
 
     return {'bbox' : np.array(bbox, dtype=int), 'confidence' : confidence}
 
@@ -169,38 +175,42 @@ def main():
 
             dets = get_car_dets(frame, det_model)
 
-            rects = []
-            keypoints = []
+            if len(dets['bbox']) > 0:
 
-            for i in range(len(dets['bbox'])):
-                
-                if dets['confidence'][i] >= args.confidence:
-                    rects.append(dets['bbox'][i])
+                rects = []
+                keypoints = []
 
-                    # TO DO: IMPLEMENT BBOX DRAWING ON IMAGES USING PIL
-                    (startX, startY, endX, endY) = dets['bbox'][i]
-                    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
+                for i in range(len(dets['bbox'])):
+                    
+                    if dets['confidence'][i] >= args.confidence:
+                        rects.append(dets['bbox'][i])
 
-                    # get keypoint MODIFICAÇÃO NECESSÁRIA
-                    keypoints = get_keypoints(frame, (startX, startY, endX, endY), kp_model)
+                        (startX, startY, endX, endY) = dets['bbox'][i]
+                        cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
 
-                    for point in keypoints:
-                        cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
+                        # get keypoint
+                        keypoints = get_keypoints(frame, (startX, startY, endX, endY), kp_model)
 
-            # update our centroid tracker using the computed set of bounding
-            # box rectangles
-            objects = tracker.update(rects)
+                        for point in keypoints:
+                            cv2.circle(frame, (int(point[0]), int(point[1])), radius=5, color=(255, 0, 0), thickness=-1)
 
-            # loop over the tracked objects
-            for (objectID, centroid) in objects.items():
-            # draw both the ID of the object and the centroid of the
-            # object on the output frame
-                text = "ID {}".format(objectID)
-                cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+                # update our centroid tracker using the computed set of bounding
+                # box rectangles
+                objects = tracker.update(rects)
 
-            video_writer.write(frame)
+                # loop over the tracked objects
+                for (objectID, centroid) in objects.items():
+                # draw both the ID of the object and the centroid of the
+                # object on the output frame
+                    text = "ID {}".format(objectID)
+                    cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+
+                video_writer.write(frame)
+            
+            else:
+                print('len bbox: ', len(dets['bbox']))
     
     print('[INFO] Video processing ended...')
 

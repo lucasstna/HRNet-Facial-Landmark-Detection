@@ -1,13 +1,13 @@
-GPUS: (0,)
+GPUS: (1,)
 WORKERS: 4
 PRINT_FREQ: 50
 
 DATASET:
   DATASET: BK
-  ROOT: '/hd4t/home/lucass/tcc/spd-est/frames-0027/'
-  TRAINSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted-train.json'
-  TESTSET: '/hd4t/home/lucass/tcc/spd-est/anns-0027/converted-test.json'
-  FLIP: true
+  ROOT: '/hd4t/home/lucass/tcc/cars_stfd_dataset_sep/'
+  TRAINSET: '/hd4t/home/lucass/tcc/anns-V3/annotations/converted-train.json'
+  TESTSET: '/hd4t/home/lucass/tcc/anns-V3/annotations/sem_stanford/BKV3-sem-stanford-converted-test.json'
+  FLIP:  true
   SCALE_FACTOR: 0.25
   ROT_FACTOR: 30
 MODEL:
@@ -15,7 +15,7 @@ MODEL:
   NUM_JOINTS: 4
   INIT_WEIGHTS: false
   PRETRAINED: ''
-  SIGMA: 1.0 
+  SIGMA: 1.5 
   IMAGE_SIZE:
     - 256
     - 256
@@ -67,7 +67,7 @@ TRAIN:
   BATCH_SIZE_PER_GPU: 16
   SHUFFLE: true
   BEGIN_EPOCH: 0
-  END_EPOCH: 20
+  END_EPOCH: 60
   RESUME: true
   OPTIMIZER: 'adam'
   LR: 0.0001
