@@ -4,9 +4,9 @@ PRINT_FREQ: 50
 
 DATASET:
   DATASET: BK
-  ROOT: '/hd4t/home/lucass/tcc/cars_stfd_dataset_sep/'
-  TRAINSET: '/hd4t/home/lucass/tcc/anns-V3/annotations/converted-train.json'
-  TESTSET: '/hd4t/home/lucass/tcc/anns-V3/annotations/sem_stanford/BKV3-sem-stanford-converted-test.json'
+  ROOT: '/hd4t/home/lucass/tcc/anns-V3/'
+  TRAINSET: '/hd4t/home/lucass/tcc/spd-est/scripts/converted-train.json' #'/hd4t/home/lucass/tcc/anns-V3/annotations/converted-train.json'
+  TESTSET: '/hd4t/home/lucass/tcc/spd-est/scripts/converted-val.json' #'/hd4t/home/lucass/tcc/anns-V3/annotations/sem_stanford/BKV3-sem-stanford-converted-test.json'
   FLIP:  true
   SCALE_FACTOR: 0.25
   ROT_FACTOR: 30

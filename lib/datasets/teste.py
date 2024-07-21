@@ -24,13 +24,19 @@ def parse_args():
 
 def main():
 
-    args = parse_args()
+    # args = parse_args()
 
-    data = BK(config, is_train=True)
+    # data = BK(config)
 
-    
     # for i in range(data.__len__()):
-    a = data.__getitem__(159)
+    #     print(i, end=', ')
+    #     a = data.__getitem__(idx = data.__len__() - 1 - i)
+
+    image_path = '/hd4t/home/lucass/tcc/anns-V3/stanford16.jpeg'
+
+    img = Image.open(image_path).convert('RGB').crop((216, 176, 543, 378))
+
+    img.save('AAAA-train.jpg')
 
 
 if __name__ == '__main__':

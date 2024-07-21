@@ -64,12 +64,12 @@ class BK(data.Dataset):
 
         # img = Image.open(image_path).convert('RGB')
 
-        # rect = ImageDraw.Draw(img)
-        # print("indo")
-        # rect.rectangle((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h), outline='red')
-        # img.save(f'{self.idx}-train-{self.landmarks_frame["annotations"][idx]["image_id"]}.jpg')
-        # print("img_path:", image_path, (bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
-        # print("foi")
+        rect = ImageDraw.Draw(img)
+        print("indo")
+        rect.rectangle((bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h), outline='red')
+        img.save(f'{self.idx}-train-{self.landmarks_frame["annotations"][idx]["image_id"]}.jpg')
+        print("img_path:", image_path, (bbox_x, bbox_y, bbox_x + bbox_w, bbox_y + bbox_h))
+        print("foi")
 
         # used in coordinates transformation
         original_size = np.array([img.size])
